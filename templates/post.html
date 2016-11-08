@@ -1,17 +1,14 @@
 <div class="post">
   <div class="inlines" style="width:15px;">
-    {% if user %}
     <span class="entypo-up-bold"></span>
     <div style="margin-left:2px;">{{p.likes}}</div>
     <span class="entypo-down-bold"></span>
   </div>
-  {% endif %}
   <div class="inlines" style="width:700px;">
   <div class="post-heading">
     <div class="post-title">
       {{p.subject}}
     </div>
-
     <div class="post-date">
       {{p.created.strftime("%b %d, %Y")}}
     </div>
@@ -21,10 +18,9 @@
     {{p._render_text | safe}}
   </div>
 </div>
-{% if user %}
+{% if user.name == p.creator %}
 <div class="inlines" style="width:30px;">
-  <span class="entypo-cancel-circled"></span>
-  <span class="entypo-pencil"></span>
+  <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>
 </div>
 {% endif %}
 </div>

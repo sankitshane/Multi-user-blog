@@ -117,6 +117,7 @@ class Post(db.Model):
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
+    creator = db.StringProperty()
     last_modified = db.DateTimeProperty(auto_now = True)
     likes = db.IntegerProperty(default = 0)
 
@@ -124,7 +125,16 @@ class Post(db.Model):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self, user = ex_user)
 
+class del_edit(BlogHandler):
+    def get(self,post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        self.render('newpost.html',subject = post.subject , content = post.content)
+    #def edit(self):
+    #    self.redirect('/newpost')
 
+    #def delete(self):
+    #    pass
 
 class BlogFront(BlogHandler):
     def get(self):
@@ -157,7 +167,7 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content)
+            p = Post(parent = blog_key(), subject = subject, content = content, creator =self.user.name)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
@@ -261,5 +271,6 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/signup', Register),
                                ('/login', Login),
                                ('/logout', Logout),
+                               ('/edit/([0-9]+)',del_edit),
                                ],
                               debug=True)
