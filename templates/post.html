@@ -1,0 +1,22 @@
+<div class="post">
+  <div class="inlines" style="width:40px; top:-200px">
+    <div style="margin-left:5px;">{{p.likes}}</div>
+    <span class="entypo-thumbs-up" onclick="{{ p.demo }}"></span>
+    <span class="entypo-thumbs-down"></span>
+  </div>
+  <div class="inlines" style="width:700px;">
+  <div class="post-heading">
+    <div class="post-title">
+      {{p.subject}}
+    </div>
+
+    <div class="post-date">
+      {{p.created.strftime("%b %d, %Y")}}
+    </div>
+  </div>
+
+  <div class="post-content">
+    {{p._render_text | safe}}
+  </div>
+</div>
+</div>
