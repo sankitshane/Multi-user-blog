@@ -1,9 +1,11 @@
 <div class="post">
-  <div class="inlines" style="width:40px; top:-200px">
-    <div style="margin-left:5px;">{{p.likes}}</div>
-    <span class="entypo-thumbs-up" onclick="{{ p.demo }}"></span>
-    <span class="entypo-thumbs-down"></span>
+  <div class="inlines" style="width:15px;">
+    {% if user %}
+    <span class="entypo-up-bold"></span>
+    <div style="margin-left:2px;">{{p.likes}}</div>
+    <span class="entypo-down-bold"></span>
   </div>
+  {% endif %}
   <div class="inlines" style="width:700px;">
   <div class="post-heading">
     <div class="post-title">
@@ -19,4 +21,10 @@
     {{p._render_text | safe}}
   </div>
 </div>
+{% if user %}
+<div class="inlines" style="width:30px;">
+  <span class="entypo-cancel-circled"></span>
+  <span class="entypo-pencil"></span>
+</div>
+{% endif %}
 </div>

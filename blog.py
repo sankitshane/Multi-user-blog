@@ -120,21 +120,16 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
     likes = db.IntegerProperty(default = 0)
 
-    def render(self):
+    def render(self,ex_user):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self,like = like_me(self))
+        return render_str("post.html", p = self, user = ex_user)
 
-def like_me(self):
-    self.likes += 1
-    return render_str("post.html", p = self)
 
-def dislike_me(self):
-    pass
 
 class BlogFront(BlogHandler):
     def get(self):
         posts = greetings = Post.all().order('-created')
-        self.render('front.html', posts = posts)
+        self.render('front.html', posts = posts,user = self.user)
 
 class PostPage(BlogHandler):
     def get(self, post_id):
@@ -145,7 +140,7 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        self.render("permalink.html", post = post)
+        self.render("permalink.html", post = post,user = self.user)
 
 class NewPost(BlogHandler):
     def get(self):
