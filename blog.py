@@ -123,18 +123,25 @@ class Post(db.Model):
 
     def render(self,ex_user):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self, user = ex_user)
+        return render_str("post.html", p = self)
 
-class del_edit(BlogHandler):
+class edit(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        self.render('newpost.html',subject = post.subject , content = post.content)
-    #def edit(self):
-    #    self.redirect('/newpost')
+        self.render('newpost.html',subject = post.subject , content = post.content, post= post)
 
-    #def delete(self):
-    #    pass
+    def post(self,post_id):
+        self.write("yay")
+
+class delete(BlogHandler):
+    def get(self,post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        dele = "del"
+        self.render("permalink.html", post = post,dele = dele)
+    def post(self,post_id):
+        self.write("Yo Yo")
 
 class BlogFront(BlogHandler):
     def get(self):
@@ -150,7 +157,7 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        self.render("permalink.html", post = post,user = self.user)
+        self.render("permalink.html", post = post)
 
 class NewPost(BlogHandler):
     def get(self):
@@ -271,6 +278,7 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/signup', Register),
                                ('/login', Login),
                                ('/logout', Logout),
-                               ('/edit/([0-9]+)',del_edit),
+                               ('/edit/([0-9]+)',edit),
+                               ('/delete/([0-9]+)',delete)
                                ],
                               debug=True)

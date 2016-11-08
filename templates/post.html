@@ -18,9 +18,4 @@
     {{p._render_text | safe}}
   </div>
 </div>
-{% if user.name == p.creator %}
-<div class="inlines" style="width:30px;">
-  <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>
-</div>
-{% endif %}
 </div>

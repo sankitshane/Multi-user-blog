@@ -137,3 +137,11 @@ h1 {
 .inlines {
   display: inline-block;
 }
+
+.inlines a {
+  position: relative;
+  text-decoration: none;
+  color: black;
+  left:730px;
+  bottom: 35px;
+}

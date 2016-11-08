@@ -15,7 +15,10 @@
       </label>
 
       <div class="error">{{error}}</div>
-
-      <input type="submit">
+      {% if not post %}
+        <input type="submit">
+      {% else %}
+      <input type="submit" name="update_button" value="Update" />
+      {% endif %}
     </form>
 {% endblock %}
