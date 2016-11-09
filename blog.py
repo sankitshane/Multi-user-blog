@@ -4,6 +4,8 @@ import random
 import hashlib
 import hmac
 from string import letters
+import time
+
 
 import webapp2
 import jinja2
@@ -132,7 +134,20 @@ class edit(BlogHandler):
         self.render('newpost.html',subject = post.subject , content = post.content, post= post)
 
     def post(self,post_id):
-        self.write("yay")
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+
+        if subject and content:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            post.subject = subject
+            post.content = content
+            post.put()
+            self.redirect('/blog/%s' % str(post.key().id()))
+        else:
+            error = "subject and content, please!"
+            self.render("newpost.html", subject=subject, content=content, error=error)
+
 
 class delete(BlogHandler):
     def get(self,post_id):
@@ -141,7 +156,11 @@ class delete(BlogHandler):
         dele = "del"
         self.render("permalink.html", post = post,dele = dele)
     def post(self,post_id):
-        self.write("Yo Yo")
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        post.delete()
+        self.redirect('/blog')
+        time.sleep(0.1)
 
 class BlogFront(BlogHandler):
     def get(self):
