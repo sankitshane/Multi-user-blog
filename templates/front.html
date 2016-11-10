@@ -5,7 +5,7 @@
   {% for p in posts %}
     {{ p.render(user) | safe }}
     {% if user.name == p.creator %}
-    <div class="inlines" style="width:50px;">
+    <div class="inlns inlines" style="width:50px;">
       <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>
       <a class="entypo-cancel" href = "/delete/{{p.key().id()}}"></a>
     </div>

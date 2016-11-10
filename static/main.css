@@ -138,10 +138,15 @@ h1 {
   display: inline-block;
 }
 
-.inlines a {
+.inlns a {
   position: relative;
   text-decoration: none;
   color: black;
   left:730px;
   bottom: 35px;
+}
+
+a {
+  color: black;
+  text-decoration: none;
 }

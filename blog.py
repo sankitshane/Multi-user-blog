@@ -116,16 +116,36 @@ def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
 
 class Post(db.Model):
+    likes = db.IntegerProperty(default = 0)
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
     creator = db.StringProperty()
     last_modified = db.DateTimeProperty(auto_now = True)
-    likes = db.IntegerProperty(default = 0)
+
 
     def render(self,ex_user):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self)
+
+
+class likes(BlogHandler):
+    def get(self,post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        post.likes += 1
+        post.put()
+        self.redirect('/blog')
+        time.sleep(0.1)
+
+class dislike(BlogHandler):
+    def get(self,post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        post.likes -= 1
+        post.put()
+        self.redirect('/blog')
+        time.sleep(0.1)
 
 class edit(BlogHandler):
     def get(self,post_id):
@@ -193,7 +213,7 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content, creator =self.user.name)
+            p = Post(parent = blog_key(), subject = subject, content = content, creator =self.user.name, likes = 0)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
@@ -298,6 +318,8 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/login', Login),
                                ('/logout', Logout),
                                ('/edit/([0-9]+)',edit),
-                               ('/delete/([0-9]+)',delete)
+                               ('/delete/([0-9]+)',delete),
+                               ('/like/([0-9]+)',likes),
+                               ('/dislike/([0-9]+)',dislike),
                                ],
                               debug=True)
