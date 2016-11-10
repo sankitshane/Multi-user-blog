@@ -1,13 +1,18 @@
 <div class="post">
   <div class="inlines" style="width:15px;">
+    {% if user.name != p.creator %}
     <a class="entypo-up-bold" href="/like/{{p.key().id()}}"></a>
     <div style="margin-left:2px;">{{p.likes}}</div>
     <a class="entypo-down-bold" href="/dislike/{{p.key().id()}}"></a>
+    {% else %}
+    <div class="likes"><strong>Likes</strong></div>
+    <div style="margin-left:2px;">{{p.likes}}</div>
+    {% endif %}
   </div>
   <div class="inlns inlines" style="width:700px;">
   <div class="post-heading">
     <div class="post-title">
-      {{p.subject}}
+      {{p.subject}} <br>{{error}}
     </div>
     <div class="post-date">
       {{p.created.strftime("%b %d, %Y")}}

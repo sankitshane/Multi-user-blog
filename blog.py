@@ -124,28 +124,61 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
 
 
-    def render(self,ex_user):
+    def render(self,ex_user,err=""):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
+        return render_str("post.html", p = self,user = ex_user,error = err)
 
-
+like_user = []
+dislike_user = []
 class likes(BlogHandler):
     def get(self,post_id):
+        global like_user
+        global dislike_user
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        post.likes += 1
-        post.put()
-        self.redirect('/blog')
-        time.sleep(0.1)
+        if (self.user.name,post_id) not in like_user or post.likes == 0:
+            like_user.append((self.user.name,post_id))
+            if (self.user.name,post_id) in dislike_user:
+                dislike_user.remove((self.user.name,post_id))
+            post.likes += 1
+            post.put()
+            self.redirect('/blog')
+            time.sleep(0.1)
+
+        elif (self.user.name,post_id) in dislike_user:
+            dislike_user.remove((self.user.name,post_id))
+            post.likes += 1
+            post.put()
+            self.redirect('/blog')
+            time.sleep(0.1)
+
+        else:
+            self.redirect("/blog")
 
 class dislike(BlogHandler):
     def get(self,post_id):
+        global dislike_user
+        global like_user
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        post.likes -= 1
-        post.put()
-        self.redirect('/blog')
-        time.sleep(0.1)
+        if (self.user.name,post_id) in like_user or post.likes == 0:
+            dislike_user.append((self.user.name,post_id))
+            if (self.user.name,post_id) in like_user:
+                like_user.remove((self.user.name,post_id))
+            post.likes -= 1
+            post.put()
+            self.redirect('/blog')
+            time.sleep(0.1)
+
+        elif (self.user.name,post_id) not in dislike_user:
+            dislike_user.append((self.user.name,post_id))
+            post.likes -= 1
+            post.put()
+            self.redirect('/blog')
+            time.sleep(0.1)
+
+        else:
+            self.redirect("/blog")
 
 class edit(BlogHandler):
     def get(self,post_id):
@@ -213,7 +246,7 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content, creator =self.user.name, likes = 0)
+            p = Post(parent = blog_key(), subject = subject, content = content, creator =self.user.name)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:

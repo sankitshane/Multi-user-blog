@@ -3,7 +3,7 @@
 {% block content %}
 
   {% for p in posts %}
-    {{ p.render(user) | safe }}
+    {{ p.render(user,error) | safe }}
     {% if user.name == p.creator %}
     <div class="inlns inlines" style="width:50px;">
       <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>
