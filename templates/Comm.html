@@ -1,0 +1,17 @@
+<div class="comm">
+  {% if c %}
+  <p>Comments</p>
+  <div class="comm-heading">
+    <div class="comm-title">
+      {{c.c_title}}
+    </div>
+    <div class="comm-date">
+      {{c.c_created.strftime("%b %d, %Y")}}
+    </div>
+  </div>
+
+  <div class="comm-content">
+    {{c.c_content | safe}}
+  </div>
+  {% endif %}
+</div>

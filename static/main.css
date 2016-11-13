@@ -160,5 +160,43 @@ a {
 
 .comment {
   border: 2px solid black;
-  width: 83px;
+  width: 135px;
+}
+
+.comm + .comm {
+    margin-top: 10px;
+}
+
+.comm-heading {
+    position: relative;
+    border-bottom: 1px solid #666;
+}
+
+.comm-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.comm-date {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    color: #999;
+
+}
+
+.comm-content {
+    margin-top: 5px;
+}
+
+.comm {
+  width: 500px;
+  position: relative;
+  left: 22px;
+}
+
+.comm p {
+  font-weight: bold;
+  font-size: 20px;
+  text-decoration: underline;
 }

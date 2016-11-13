@@ -135,8 +135,11 @@ class Comments(db.Model):
     c_created = db.DateTimeProperty(auto_now_add = True)
     c_creator = db.StringProperty()
 
-    def render(self):
-        return render_str("Comments.html", p = self)
+    def render(self,post):
+        if str(post.key().id()) == str(self.c_post):
+            return render_str("Comm.html", c = self)
+        else:
+            return render_str("Comm.html")
 
 class Comment(BlogHandler):
     def get(self,post_id):
@@ -156,6 +159,7 @@ class Comment(BlogHandler):
             c = Comments(parent = blog_key(),c_title = title, c_content = content, c_creator =self.user.name, c_post = post_id)
             c.put()
             self.redirect('/blog')
+            time.sleep(0.1)
         else:
             error = "title and content, please!"
             self.render("comments.html",title=title, content=content, error=error)
@@ -251,7 +255,8 @@ class delete(BlogHandler):
 class BlogFront(BlogHandler):
     def get(self):
         posts = greetings = Post.all().order('-created')
-        self.render('front.html', posts = posts,user = self.user)
+        comments = Comments.all().order('-c_created')
+        self.render('front.html', posts = posts,comments = comments,user = self.user)
 
 class PostPage(BlogHandler):
     def get(self, post_id):
