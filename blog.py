@@ -128,6 +128,39 @@ class Post(db.Model):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self,user = ex_user,error = err)
 
+class Comments(db.Model):
+    c_title = db.StringProperty(required = True)
+    c_content = db.StringProperty(required = True)
+    c_post = db.StringProperty(required = True)
+    c_created = db.DateTimeProperty(auto_now_add = True)
+    c_creator = db.StringProperty()
+
+    def render(self):
+        return render_str("Comments.html", p = self)
+
+class Comment(BlogHandler):
+    def get(self,post_id):
+        if self.user:
+            self.render("comments.html")
+        else:
+            self.redirect("/login")
+
+    def post(self,post_id):
+        if not self.user:
+            self.redirect('/blog')
+
+        title = self.request.get('title')
+        content = self.request.get('content')
+
+        if title and content:
+            c = Comments(parent = blog_key(),c_title = title, c_content = content, c_creator =self.user.name, c_post = post_id)
+            c.put()
+            self.redirect('/blog')
+        else:
+            error = "title and content, please!"
+            self.render("comments.html",title=title, content=content, error=error)
+
+
 like_user = []
 dislike_user = []
 class likes(BlogHandler):
@@ -354,5 +387,6 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/delete/([0-9]+)',delete),
                                ('/like/([0-9]+)',likes),
                                ('/dislike/([0-9]+)',dislike),
+                               ('/comment/([0-9]+)',Comment),
                                ],
                               debug=True)

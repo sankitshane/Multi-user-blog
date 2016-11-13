@@ -152,6 +152,13 @@ a {
 }
 
 .likes {
+  position: relative;
   margin-left: -30px;
   text-decoration: underline;
+  top:-5px;
+}
+
+.comment {
+  border: 2px solid black;
+  width: 83px;
 }

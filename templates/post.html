@@ -1,18 +1,18 @@
 <div class="post">
-  <div class="inlines" style="width:15px;">
+  <div class="inlines" style="width:15px; position:relative; top:-35px;">
     {% if user.name != p.creator %}
     <a class="entypo-up-bold" href="/like/{{p.key().id()}}"></a>
-    <div style="margin-left:2px;">{{p.likes}}</div>
+    <div style="margin-left:-1px;">{{p.likes}}</div>
     <a class="entypo-down-bold" href="/dislike/{{p.key().id()}}"></a>
     {% else %}
     <div class="likes"><strong>Likes</strong></div>
-    <div style="margin-left:2px;">{{p.likes}}</div>
+    <div style="margin-left:-4px;">{{p.likes}}</div>
     {% endif %}
   </div>
-  <div class="inlns inlines" style="width:700px;">
+  <div class="inlines" style="width:700px;">
   <div class="post-heading">
     <div class="post-title">
-      {{p.subject}} <br>{{error}}
+      <a href="/blog/{{p.key().id()}}">{{p.subject}}</a>
     </div>
     <div class="post-date">
       {{p.created.strftime("%b %d, %Y")}}
@@ -21,6 +21,10 @@
 
   <div class="post-content">
     {{p._render_text | safe}}
+  </div>
+  <br>
+  <div class="comment">
+    <a href="/comment/{{p.key().id()}}" style="margin:5px;"><strong>Comments</strong></a>
   </div>
 </div>
 </div>
