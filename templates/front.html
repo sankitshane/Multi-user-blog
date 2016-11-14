@@ -10,6 +10,7 @@
       <a class="entypo-cancel" href = "/delete/{{p.key().id()}}"></a>
     </div>
     {% endif %}
+    <p>Comments</p>
     {% for c in comments %}
         {{ c.render(p) | safe}}
     {% endfor %}

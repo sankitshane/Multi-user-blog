@@ -1,3 +1,4 @@
+#Python lib imports
 import os
 import re
 import random
@@ -6,18 +7,22 @@ import hmac
 from string import letters
 import time
 
-
+#appengine and template imports
 import webapp2
 import jinja2
 
+#database imports
 from google.appengine.ext import db
 
+#jinja Environment setup
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
+#random secret password
 secret = 'shane'
 
+#General functions
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
@@ -30,6 +35,7 @@ def check_secure_val(secure_val):
     if secure_val == make_secure_val(val):
         return val
 
+#Parent Class for the Blog
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -83,6 +89,7 @@ def valid_pw(name, password, h):
 def users_key(group = 'default'):
     return db.Key.from_path('users', group)
 
+#Parent Class for User
 class User(db.Model):
     name = db.StringProperty(required = True)
     pw_hash = db.StringProperty(required = True)
@@ -115,6 +122,7 @@ class User(db.Model):
 def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
 
+# Post Table
 class Post(db.Model):
     likes = db.IntegerProperty(default = 0)
     subject = db.StringProperty(required = True)
@@ -128,6 +136,7 @@ class Post(db.Model):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self,user = ex_user,error = err)
 
+#Comments Table
 class Comments(db.Model):
     c_title = db.StringProperty(required = True)
     c_content = db.StringProperty(required = True)
@@ -141,6 +150,7 @@ class Comments(db.Model):
         else:
             return render_str("Comm.html")
 
+# Url /comment handler
 class Comment(BlogHandler):
     def get(self,post_id):
         if self.user:
@@ -164,59 +174,69 @@ class Comment(BlogHandler):
             error = "title and content, please!"
             self.render("comments.html",title=title, content=content, error=error)
 
-
+#global variables for like and dislike functionality
 like_user = []
 dislike_user = []
+
+# Url Likes handler
 class likes(BlogHandler):
     def get(self,post_id):
         global like_user
         global dislike_user
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
-        if (self.user.name,post_id) not in like_user or post.likes == 0:
-            like_user.append((self.user.name,post_id))
-            if (self.user.name,post_id) in dislike_user:
-                dislike_user.remove((self.user.name,post_id))
-            post.likes += 1
-            post.put()
-            self.redirect('/blog')
-            time.sleep(0.1)
+        if self.user:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            if (self.user.name,post_id) not in like_user or post.likes == 0:
+                like_user.append((self.user.name,post_id))
+                if (self.user.name,post_id) in dislike_user:
+                    dislike_user.remove((self.user.name,post_id))
+                    post.likes += 1
+                    post.put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
 
-        elif (self.user.name,post_id) in dislike_user:
-            dislike_user.remove((self.user.name,post_id))
-            post.likes += 1
-            post.put()
-            self.redirect('/blog')
-            time.sleep(0.1)
+                elif (self.user.name,post_id) in dislike_user:
+                    dislike_user.remove((self.user.name,post_id))
+                    post.likes += 1
+                    post.put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
 
+            else:
+                self.redirect("/blog")
         else:
-            self.redirect("/blog")
+            self.redirect("/login")
 
+#Url dislike Handler
 class dislike(BlogHandler):
     def get(self,post_id):
         global dislike_user
         global like_user
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
-        if (self.user.name,post_id) in like_user or post.likes == 0:
-            dislike_user.append((self.user.name,post_id))
-            if (self.user.name,post_id) in like_user:
-                like_user.remove((self.user.name,post_id))
-            post.likes -= 1
-            post.put()
-            self.redirect('/blog')
-            time.sleep(0.1)
+        if self.user:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            if (self.user.name,post_id) in like_user or post.likes == 0:
+                dislike_user.append((self.user.name,post_id))
+                if (self.user.name,post_id) in like_user:
+                    like_user.remove((self.user.name,post_id))
+                    post.likes -= 1
+                    post.put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
 
-        elif (self.user.name,post_id) not in dislike_user:
-            dislike_user.append((self.user.name,post_id))
-            post.likes -= 1
-            post.put()
-            self.redirect('/blog')
-            time.sleep(0.1)
+                elif (self.user.name,post_id) not in dislike_user:
+                    dislike_user.append((self.user.name,post_id))
+                    post.likes -= 1
+                    post.put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
 
+            else:
+                self.redirect("/blog")
         else:
-            self.redirect("/blog")
+            self.redirect("/login")
 
+#Url Edit Handler
 class edit(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -238,7 +258,7 @@ class edit(BlogHandler):
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
-
+#Url Delete Handler
 class delete(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -252,12 +272,14 @@ class delete(BlogHandler):
         self.redirect('/blog')
         time.sleep(0.1)
 
+#Url Blog main page Handler
 class BlogFront(BlogHandler):
     def get(self):
         posts = greetings = Post.all().order('-created')
         comments = Comments.all().order('-c_created')
         self.render('front.html', posts = posts,comments = comments,user = self.user)
 
+#Url specific Blog feed handler
 class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -269,6 +291,7 @@ class PostPage(BlogHandler):
 
         self.render("permalink.html", post = post)
 
+#Url new Post handler
 class NewPost(BlogHandler):
     def get(self):
         if self.user:
@@ -291,7 +314,7 @@ class NewPost(BlogHandler):
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
-
+#Security part
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
     return username and USER_RE.match(username)
@@ -304,6 +327,7 @@ EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
 
+#Url Signup Handler
 class Signup(BlogHandler):
     def get(self):
         self.render("signup-form.html")
@@ -341,6 +365,7 @@ class Signup(BlogHandler):
     def done(self, *a, **kw):
         raise NotImplementedError
 
+#Url User registeration handler
 class Register(Signup):
     def done(self):
         #make sure the user doesn't already exist
@@ -355,6 +380,7 @@ class Register(Signup):
             self.login(u)
             self.redirect('/blog')
 
+#Url Login Handler
 class Login(BlogHandler):
     def get(self):
         self.render('login-form.html')
@@ -371,12 +397,14 @@ class Login(BlogHandler):
             msg = 'Invalid login'
             self.render('login-form.html', error = msg)
 
+#Url Logout Handler
 class Logout(BlogHandler):
     def get(self):
         self.logout()
         self.redirect('/blog')
 
 
+# Main Page Url
 class MainPage(BlogHandler):
   def get(self):
       self.render("welcome.html")

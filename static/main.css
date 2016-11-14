@@ -195,7 +195,9 @@ a {
   left: 22px;
 }
 
-.comm p {
+p {
+  position: relative;
+  left:21px;
   font-weight: bold;
   font-size: 20px;
   text-decoration: underline;
