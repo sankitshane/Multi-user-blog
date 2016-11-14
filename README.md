@@ -5,7 +5,8 @@ Python and jinja2 template library. The database used is SQLite.
 
 The full structure is run and powered by webapp2 which is by google app engine.
 
-You can find this project at [This link!](https://rot13-148421.appspot.com/blog)
+You can find this project at [This link!](https://rot13-148421.appspot.com)
+Please Click the browser icon to load unsafe script for full access.
 
 ##functions
 
