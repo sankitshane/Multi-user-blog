@@ -5,6 +5,8 @@
   font-family: 'entypo', sans-serif;
 }
 
+
+
 body {
     position: relative;
     font-family: Helvetica, Arial, sans-serif;
@@ -51,14 +53,15 @@ h2 {
 label {
   display: block;
   font-size: 20px;
+  text-align: right
 }
 
 label + label {
     margin-top: 20px;
 }
 
-input[type=text] {
-    width: 500px;
+input{
+
     font-size: 20px;
     padding: 2px;
     font-family: monospace;
