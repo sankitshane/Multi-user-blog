@@ -1,14 +1,8 @@
 <div class="post">
   <div class="inlines" style="width:15px; position:relative; top:-35px;">
-    {% if user.name != p.creator %}
     <a class="entypo-up-bold" href="/like/{{p.key().id()}}"></a>
     <div style="margin-left:-1px;">{{p.likes}}</div>
     <a class="entypo-down-bold" href="/dislike/{{p.key().id()}}"></a>
-    {% else %}
-    <a class="entypo-up-bold"></a>
-    <div style="margin-left:-1px;">{{p.likes}}</div>
-    <a class="entypo-down-bold"></a>
-    {% endif %}
   </div>
   <div class="inlines" style="width:700px;">
   <div class="post-heading">

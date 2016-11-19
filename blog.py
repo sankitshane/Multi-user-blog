@@ -186,26 +186,31 @@ class likes(BlogHandler):
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            if (self.user.name,post_id) not in like_user or post.likes == 0:
-                like_user.append((self.user.name,post_id))
-                if (self.user.name,post_id) in dislike_user:
-                    dislike_user.remove((self.user.name,post_id))
-                    post.likes += 1
-                    post.put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
+            if self.user.name != post.creator:
+                if (self.user.name,post_id) not in like_user or post.likes == 0:
+                    like_user.append((self.user.name,post_id))
+                    if (self.user.name,post_id) in dislike_user:
+                        dislike_user.remove((self.user.name,post_id))
+                        post.likes += 1
+                        post.put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
 
-                elif (self.user.name,post_id) in dislike_user:
-                    dislike_user.remove((self.user.name,post_id))
-                    post.likes += 1
-                    post.put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
+                    elif (self.user.name,post_id) in dislike_user:
+                        dislike_user.remove((self.user.name,post_id))
+                        post.likes += 1
+                        post.put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
 
+                else:
+                    self.redirect("/blog")
             else:
-                self.redirect("/blog")
+                error = "You are only allowed to like other's blog posts"
+                self.redirect('/blog?error='+error)
         else:
-            self.redirect("/login")
+            msg = "Please Log in to Like blog posts"
+            self.render('login-form.html', error = msg)
 
 #Url dislike Handler
 class dislike(BlogHandler):
@@ -215,26 +220,31 @@ class dislike(BlogHandler):
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            if (self.user.name,post_id) in like_user or post.likes == 0:
-                dislike_user.append((self.user.name,post_id))
-                if (self.user.name,post_id) in like_user:
-                    like_user.remove((self.user.name,post_id))
-                    post.likes -= 1
-                    post.put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
-
-                elif (self.user.name,post_id) not in dislike_user:
+            if self.user.name != post.creator:
+                if (self.user.name,post_id) in like_user or post.likes == 0:
                     dislike_user.append((self.user.name,post_id))
-                    post.likes -= 1
-                    post.put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
+                    if (self.user.name,post_id) in like_user:
+                        like_user.remove((self.user.name,post_id))
+                        post.likes -= 1
+                        post.put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
 
+                    elif (self.user.name,post_id) not in dislike_user:
+                        dislike_user.append((self.user.name,post_id))
+                        post.likes -= 1
+                        post.put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
+
+                else:
+                    self.redirect("/blog")
             else:
-                self.redirect("/blog")
+                error = "You are only allowed to dislike other's blog posts"
+                self.redirect('/blog?error='+error)
         else:
-            self.redirect("/login")
+            msg = "Please Log in to disLike blog posts"
+            self.render('login-form.html', error = msg)
 
 #Url Edit Handler
 class edit(BlogHandler):
@@ -267,8 +277,13 @@ class delete(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        dele = "del"
-        self.render("permalink.html", post = post,dele = dele)
+        if self.user.name == post.creator:
+            dele = "del"
+            self.render("permalink.html", post = post,dele = dele)
+        else:
+            error = "You are only allowed to delete your own blog posts"
+            self.redirect('/blog?error='+error)
+
     def post(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
