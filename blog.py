@@ -132,9 +132,9 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
 
 
-    def render(self,ex_user,err=""):
+    def render(self,ex_user,err="",post_id=""):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self,user = ex_user,error = err)
+        return render_str("post.html", p = self,user = ex_user,error = err,post_id = post_id)
 
 #Comments Table
 class Comments(db.Model):
@@ -241,7 +241,11 @@ class edit(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        self.render('newpost.html',subject = post.subject , content = post.content, post= post)
+        if self.user.name == post.creator:
+            self.render('newpost.html',subject = post.subject , content = post.content, post= post)
+        else:
+            error = "You are only allowed to edit your own blog posts"
+            self.redirect('/blog?error='+error)
 
     def post(self,post_id):
         subject = self.request.get('subject')
@@ -275,9 +279,10 @@ class delete(BlogHandler):
 #Url Blog main page Handler
 class BlogFront(BlogHandler):
     def get(self):
+        error = self.request.get('error')
         posts = greetings = Post.all().order('-created')
         comments = Comments.all().order('-c_created')
-        self.render('front.html', posts = posts,comments = comments,user = self.user)
+        self.render('front.html', posts = posts,comments = comments,user = self.user,error = error)
 
 #Url specific Blog feed handler
 class PostPage(BlogHandler):

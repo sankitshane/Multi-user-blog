@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="error main_error">
+  {{ error }}
+</div>
+<br>
   {% for p in posts %}
-    {{ p.render(user,error) | safe }}
-    {% if user.name == p.creator %}
+    {{ p.render(user,error,post_id) | safe }}
+    {% if user %}
     <div class="inlns inlines" style="width:50px;">
       <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>
       <a class="entypo-cancel" href = "/delete/{{p.key().id()}}"></a>

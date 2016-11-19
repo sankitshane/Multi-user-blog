@@ -5,8 +5,9 @@
     <div style="margin-left:-1px;">{{p.likes}}</div>
     <a class="entypo-down-bold" href="/dislike/{{p.key().id()}}"></a>
     {% else %}
-    <div class="likes"><strong>Likes</strong></div>
-    <div style="margin-left:-4px;">{{p.likes}}</div>
+    <a class="entypo-up-bold"></a>
+    <div style="margin-left:-1px;">{{p.likes}}</div>
+    <a class="entypo-down-bold"></a>
     {% endif %}
   </div>
   <div class="inlines" style="width:700px;">

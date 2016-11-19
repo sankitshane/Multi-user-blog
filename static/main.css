@@ -53,7 +53,6 @@ h2 {
 label {
   display: block;
   font-size: 20px;
-  text-align: right
 }
 
 label + label {
@@ -204,4 +203,12 @@ p {
   font-weight: bold;
   font-size: 20px;
   text-decoration: underline;
+}
+
+.main_error {
+  position: relative;
+  left: 10px;
+  margin: 5px;
+  font-size: 18px;
+  font-weight: bold;
 }
