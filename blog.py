@@ -161,28 +161,39 @@ class t_likes(db.Model):
 # Url /comment handler
 class Comment(BlogHandler):
     def get(self,post_id):
-        if self.user:
-            self.render("comments.html")
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if post:
+            if self.user:
+                self.render("comments.html")
+            else:
+                self.redirect("/login")
         else:
-            self.redirect("/login")
+            error = "Post doesn't exist"
+            self.redirect('/blog?error='+error)
 
     def post(self,post_id):
-        if not self.user:
-            self.redirect('/blog')
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if post:
+            if not self.user:
+                self.redirect('/blog')
 
-        title = self.request.get('title')
-        content = self.request.get('content')
+                title = self.request.get('title')
+                content = self.request.get('content')
 
-        if title and content:
-            c = Comments(parent = blog_key(),c_title = title, c_content = content, c_creator =self.user.name, c_post = post_id)
-            c.put()
-            self.redirect('/blog')
-            time.sleep(0.1)
+                if title and content:
+                    c = Comments(parent = blog_key(),c_title = title, c_content = content, c_creator =self.user.name, c_post = post_id)
+                    c.put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
+                else:
+                    error = "title and content, please!"
+                    self.render("comments.html",title=title, content=content, error=error)
+
         else:
-            error = "title and content, please!"
-            self.render("comments.html",title=title, content=content, error=error)
-
-#global variables for like and dislike functionality
+            error = "Post doesn't exist"
+            self.redirect('/blog?error='+error)
 
 
 # Url Likes handler
@@ -191,28 +202,32 @@ class likes(BlogHandler):
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            if self.user.name != post.creator:
-                row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
-                if row:
-                    if row.l_like == -1:
-                        row.l_like = 0
-                        row.put()
-                        self.redirect('/blog')
-                        time.sleep(0.1)
-                    elif row.l_like == 0:
-                        row.l_like = 1
-                        row.put()
-                        self.redirect('/blog')
-                        time.sleep(0.1)
+            if post:
+                if self.user.name != post.creator:
+                    row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
+                    if row:
+                        if row.l_like == -1:
+                            row.l_like = 0
+                            row.put()
+                            self.redirect('/blog')
+                            time.sleep(0.1)
+                        elif row.l_like == 0:
+                            row.l_like = 1
+                            row.put()
+                            self.redirect('/blog')
+                            time.sleep(0.1)
+                        else:
+                            error = "You are already liked this post"
+                            self.redirect('/blog?error='+error)
                     else:
-                        error = "You are already liked this post"
-                        self.redirect('/blog?error='+error)
+                        new_row = t_likes(l_user = self.user.name, l_post = int(post_id), l_like=1).put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
                 else:
-                    new_row = t_likes(l_user = self.user.name, l_post = int(post_id), l_like=1).put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
+                    error = "You are only allowed to like other's blog posts"
+                    self.redirect('/blog?error='+error)
             else:
-                error = "You are only allowed to like other's blog posts"
+                error = "Post doesn't exist"
                 self.redirect('/blog?error='+error)
         else:
             msg = "Please Log in to Like blog posts"
@@ -221,33 +236,35 @@ class likes(BlogHandler):
 #Url dislike Handler
 class dislike(BlogHandler):
     def get(self,post_id):
-        global dislike_user
-        global like_user
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            if self.user.name != post.creator:
-                row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
-                if row:
-                    if row.l_like == 1:
-                        row.l_like = 0
-                        row.put()
-                        self.redirect('/blog')
-                        time.sleep(0.1)
-                    elif row.l_like == 0:
-                        row.l_like = -1
-                        row.put()
-                        self.redirect('/blog')
-                        time.sleep(0.1)
+            if post:
+                if self.user.name != post.creator:
+                    row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
+                    if row:
+                        if row.l_like == 1:
+                            row.l_like = 0
+                            row.put()
+                            self.redirect('/blog')
+                            time.sleep(0.1)
+                        elif row.l_like == 0:
+                            row.l_like = -1
+                            row.put()
+                            self.redirect('/blog')
+                            time.sleep(0.1)
+                        else:
+                            error = "You are already disliked this post"
+                            self.redirect('/blog?error='+error)
                     else:
-                        error = "You are already disliked this post"
-                        self.redirect('/blog?error='+error)
+                        new_row = t_likes(l_user = self.user.name , l_post = int(post_id) , l_like = -1).put()
+                        self.redirect('/blog')
+                        time.sleep(0.1)
                 else:
-                    new_row = t_likes(l_user = self.user.name , l_post = int(post_id) , l_like = -1).put()
-                    self.redirect('/blog')
-                    time.sleep(0.1)
+                    error = "You are only allowed to dislike other's blog posts"
+                    self.redirect('/blog?error='+error)
             else:
-                error = "You are only allowed to dislike other's blog posts"
+                error = "Post doesn't exist"
                 self.redirect('/blog?error='+error)
         else:
             msg = "Please Log in to disLike blog posts"
@@ -258,46 +275,62 @@ class edit(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        if self.user.name == post.creator:
-            self.render('newpost.html',subject = post.subject , content = post.content, post= post)
+        if post:
+            if self.user.name == post.creator:
+                self.render('newpost.html',subject = post.subject , content = post.content, post= post)
+            else:
+                error = "You are only allowed to edit your own blog posts"
+                self.redirect('/blog?error='+error)
         else:
-            error = "You are only allowed to edit your own blog posts"
+            error = "Post doesn't exist"
             self.redirect('/blog?error='+error)
 
     def post(self,post_id):
-        subject = self.request.get('subject')
-        content = self.request.get('content')
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if post:
+            subject = self.request.get('subject')
+            content = self.request.get('content')
 
-        if subject and content:
-            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
-            post.subject = subject
-            post.content = content
-            post.put()
-            self.redirect('/blog/%s' % str(post.key().id()))
+            if subject and content:
+                post.subject = subject
+                post.content = content
+                post.put()
+                self.redirect('/blog/%s' % str(post.key().id()))
+            else:
+                error = "subject and content, please!"
+                self.render("newpost.html", subject=subject, content=content, error=error)
         else:
-            error = "subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
+            error = "Post doesn't exist"
+            self.redirect('/blog?error='+error)
 
 #Url Delete Handler
 class delete(BlogHandler):
     def get(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        if self.user.name == post.creator:
-            dele = "del"
-            self.render("permalink.html", post = post,dele = dele)
+        if post:
+            if self.user.name == post.creator:
+                dele = "del"
+                self.render("permalink.html", post = post,dele = dele)
+            else:
+                error = "You are only allowed to delete your own blog posts"
+                self.redirect('/blog?error='+error)
         else:
-            error = "You are only allowed to delete your own blog posts"
+            error = "Post doesn't exist"
             self.redirect('/blog?error='+error)
 
     def post(self,post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        post.delete()
-        self.redirect('/blog')
-        time.sleep(0.1)
-
+        if post:
+            post.delete()
+            self.redirect('/blog')
+            time.sleep(0.1)
+        else:
+            error = "Post doesn't exist"
+            self.redirect('/blog?error='+error)
+            
 #Url Blog main page Handler
 class BlogFront(BlogHandler):
     def get(self):

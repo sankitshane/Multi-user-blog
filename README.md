@@ -12,3 +12,10 @@ Please Click the browser icon to load unsafe script for full access.
 
 You can create you user account, post blogs , edit and update your own blogs.
 you can like or dislike others blog.
+
+##Run Locally
+
+1. Download Google App Engine(Google Cloud Platform).
+2. Run google Cloud SDK Shell.
+3. Run the dev_appserver.py in the shell.
+4. Go to local Host port 8080
