@@ -124,7 +124,6 @@ def blog_key(name = 'default'):
 
 # Post Table
 class Post(db.Model):
-    likes = db.IntegerProperty(default = 0)
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
@@ -132,9 +131,13 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
 
 
-    def render(self,ex_user,err="",post_id=""):
+    def render(self,ex_user,err="",post_id="",likes=""):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self,user = ex_user,error = err,post_id = post_id)
+        self.hits = 0
+        for i in likes:
+            if i.l_post == int(post_id):
+                self.hits = self.hits + i.l_like
+        return render_str("post.html", p = self,user = ex_user,error = err,post_id = post_id,likes = self.hits)
 
 #Comments Table
 class Comments(db.Model):
@@ -149,6 +152,11 @@ class Comments(db.Model):
             return render_str("Comm.html", c = self)
         else:
             return render_str("Comm.html")
+
+class t_likes(db.Model):
+    l_user = db.StringProperty(required = True)
+    l_post = db.IntegerProperty(required = True)
+    l_like = db.IntegerProperty( default = 0)
 
 # Url /comment handler
 class Comment(BlogHandler):
@@ -175,36 +183,34 @@ class Comment(BlogHandler):
             self.render("comments.html",title=title, content=content, error=error)
 
 #global variables for like and dislike functionality
-like_user = []
-dislike_user = []
+
 
 # Url Likes handler
 class likes(BlogHandler):
     def get(self,post_id):
-        global like_user
-        global dislike_user
         if self.user:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
             if self.user.name != post.creator:
-                if (self.user.name,post_id) not in like_user or post.likes == 0:
-                    like_user.append((self.user.name,post_id))
-                    if (self.user.name,post_id) in dislike_user:
-                        dislike_user.remove((self.user.name,post_id))
-                        post.likes += 1
-                        post.put()
+                row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
+                if row:
+                    if row.l_like == -1:
+                        row.l_like = 0
+                        row.put()
                         self.redirect('/blog')
                         time.sleep(0.1)
-
-                    elif (self.user.name,post_id) in dislike_user:
-                        dislike_user.remove((self.user.name,post_id))
-                        post.likes += 1
-                        post.put()
+                    elif row.l_like == 0:
+                        row.l_like = 1
+                        row.put()
                         self.redirect('/blog')
                         time.sleep(0.1)
-
+                    else:
+                        error = "You are already liked this post"
+                        self.redirect('/blog?error='+error)
                 else:
-                    self.redirect("/blog")
+                    new_row = t_likes(l_user = self.user.name, l_post = int(post_id), l_like=1).put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
             else:
                 error = "You are only allowed to like other's blog posts"
                 self.redirect('/blog?error='+error)
@@ -221,24 +227,25 @@ class dislike(BlogHandler):
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
             if self.user.name != post.creator:
-                if (self.user.name,post_id) in like_user or post.likes == 0:
-                    dislike_user.append((self.user.name,post_id))
-                    if (self.user.name,post_id) in like_user:
-                        like_user.remove((self.user.name,post_id))
-                        post.likes -= 1
-                        post.put()
+                row = db.GqlQuery("SELECT * FROM t_likes WHERE l_user = :1 AND l_post = :2",self.user.name,int(post_id)).get()
+                if row:
+                    if row.l_like == 1:
+                        row.l_like = 0
+                        row.put()
                         self.redirect('/blog')
                         time.sleep(0.1)
-
-                    elif (self.user.name,post_id) not in dislike_user:
-                        dislike_user.append((self.user.name,post_id))
-                        post.likes -= 1
-                        post.put()
+                    elif row.l_like == 0:
+                        row.l_like = -1
+                        row.put()
                         self.redirect('/blog')
                         time.sleep(0.1)
-
+                    else:
+                        error = "You are already disliked this post"
+                        self.redirect('/blog?error='+error)
                 else:
-                    self.redirect("/blog")
+                    new_row = t_likes(l_user = self.user.name , l_post = int(post_id) , l_like = -1).put()
+                    self.redirect('/blog')
+                    time.sleep(0.1)
             else:
                 error = "You are only allowed to dislike other's blog posts"
                 self.redirect('/blog?error='+error)
@@ -297,7 +304,8 @@ class BlogFront(BlogHandler):
         error = self.request.get('error')
         posts = greetings = Post.all().order('-created')
         comments = Comments.all().order('-c_created')
-        self.render('front.html', posts = posts,comments = comments,user = self.user,error = error)
+        like = db.GqlQuery("SELECT l_post,l_like FROM t_likes")
+        self.render('front.html', posts = posts,comments = comments,user = self.user,error = error,likes = like)
 
 #Url specific Blog feed handler
 class PostPage(BlogHandler):

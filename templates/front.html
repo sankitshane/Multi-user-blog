@@ -6,7 +6,7 @@
 </div>
 <br>
   {% for p in posts %}
-    {{ p.render(user,error,post_id) | safe }}
+    {{ p.render(user,error,p.key().id(),likes) | safe }}
     {% if user %}
     <div class="inlns inlines" style="width:50px;">
       <a class="entypo-pencil" href="/edit/{{p.key().id()}}"></a>

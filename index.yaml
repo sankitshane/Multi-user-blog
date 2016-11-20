@@ -21,3 +21,8 @@ indexes:
   properties:
   - name: date
     direction: desc
+
+- kind: t_likes
+  properties:
+  - name: l_like
+  - name: l_post
